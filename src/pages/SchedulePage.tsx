@@ -11,6 +11,7 @@ import {
 } from '../lib/firestore'
 import { forgetScheduleId, rememberScheduleId } from '../lib/localSchedules'
 import { commonAvailableSlots, slotLabel } from '../lib/availability'
+import { formatDateWithWeekday } from '../lib/date'
 import { findBoss } from '../bosses'
 import type { AnswerType, ConfirmedSlot, MemberResponse, Schedule } from '../types'
 import BossImage from '../components/BossImage'
@@ -105,7 +106,7 @@ function ConfirmedView({ schedule }: { schedule: Schedule }) {
         <div className="mt-3 space-y-2">
           {schedule.confirmedSlots.map((slot) => (
             <p key={`${slot.date}_${slot.time}`} className="text-2xl font-bold text-emerald-800">
-              {slot.date} {slot.time}〜
+              {formatDateWithWeekday(slot.date)} {slot.time}〜
             </p>
           ))}
         </div>
@@ -262,7 +263,9 @@ function LeaderView({
             <tbody>
               {schedule.candidateDates.map((date) => (
                 <tr key={date}>
-                  <td className="border-b border-gray-50 p-2 font-medium text-gray-900">{date}</td>
+                  <td className="border-b border-gray-50 p-2 font-medium text-gray-900">
+                    {formatDateWithWeekday(date)}
+                  </td>
                   {responses.map((r) => {
                     const answer = r.answers[date]
                     return (
@@ -310,7 +313,7 @@ function LeaderView({
             >
               {schedule.candidateDates.map((d) => (
                 <option key={d} value={d}>
-                  {d}
+                  {formatDateWithWeekday(d)}
                 </option>
               ))}
             </select>
@@ -371,7 +374,7 @@ function LeaderView({
               className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800"
             >
               <span className="font-medium">
-                {slot.date} {slot.time}〜
+                {formatDateWithWeekday(slot.date)} {slot.time}〜
               </span>
               <button
                 type="button"

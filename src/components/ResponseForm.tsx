@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getMyResponse, upsertResponse } from '../lib/firestore'
+import { formatDateWithWeekday } from '../lib/date'
 import type { AnswerType, DateAnswer, Schedule } from '../types'
 import AnswerTypeSelector from './AnswerTypeSelector'
 import TimeGridPicker from './TimeGridPicker'
@@ -91,7 +92,7 @@ export default function ResponseForm({ schedule, userId, onSaved }: ResponseForm
         {schedule.candidateDates.map((date) => (
           <div key={date} className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-gray-900">{date}</span>
+              <span className="font-medium text-gray-900">{formatDateWithWeekday(date)}</span>
               <AnswerTypeSelector
                 value={answers[date]?.type}
                 onChange={(type) => setAnswerType(date, type)}

@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" font-family="'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc" />
+      <stop offset="100%" stop-color="#eef2ff" />
+    </linearGradient>
+    <linearGradient id="bar1" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <linearGradient id="bar2" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#2563eb" />
+    </linearGradient>
+    <linearGradient id="bar3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="bar4" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#9333ea" />
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#a5b4fc" />
+    </marker>
+  </defs>
+
+  <rect width="1280" height="640" fill="url(#bg)" />
+
+  <!-- ロゴ: きのこ x クロスした剣 -->
+  <g transform="translate(48, 36) scale(0.55)">
+    <g stroke="#9aa5b1" stroke-width="5" stroke-linecap="round">
+      <line x1="10" y1="54" x2="54" y2="10" />
+      <line x1="54" y1="54" x2="10" y2="10" />
+    </g>
+    <g stroke="#5b6672" stroke-width="5" stroke-linecap="round" opacity="0.5">
+      <line x1="10" y1="54" x2="20" y2="44" />
+      <line x1="54" y1="54" x2="44" y2="44" />
+    </g>
+    <g fill="#caa24a" stroke="#8a6a24" stroke-width="1.5">
+      <rect x="6" y="50" width="10" height="6" rx="2" transform="rotate(-45 11 53)" />
+      <rect x="48" y="50" width="10" height="6" rx="2" transform="rotate(45 53 53)" />
+    </g>
+    <path d="M 14 30 C 14 16 22 8 32 8 C 42 8 50 16 50 30 C 50 34 46 36 32 36 C 18 36 14 34 14 30 Z" fill="#e0455f" stroke="#a12e42" stroke-width="2" />
+    <circle cx="24" cy="20" r="3" fill="#fff" />
+    <circle cx="38" cy="17" r="2.6" fill="#fff" />
+    <circle cx="32" cy="27" r="2.2" fill="#fff" />
+    <circle cx="43" cy="25" r="2" fill="#fff" />
+  </g>
+
+  <text x="90" y="65" font-size="30" font-weight="700" fill="#1e1b4b">ボススケジューラーの使い方</text>
+  <text x="90" y="92" font-size="15" fill="#64748b">パーティーのボス討伐日程を、みんなで簡単に調整</text>
+
+  <!-- 矢印 -->
+  <g fill="none" stroke="#c7d2fe" stroke-width="4">
+    <line x1="330" y1="350" x2="370" y2="350" marker-end="url(#arrow)" />
+    <line x1="630" y1="350" x2="670" y2="350" marker-end="url(#arrow)" />
+    <line x1="930" y1="350" x2="970" y2="350" marker-end="url(#arrow)" />
+  </g>
+
+  <!-- Step 1 -->
+  <g transform="translate(45, 160)">
+    <rect width="280" height="380" rx="20" fill="#ffffff" stroke="#e5e7eb" />
+    <rect width="280" height="7" rx="3.5" fill="url(#bar1)" />
+    <circle cx="34" cy="46" r="18" fill="#eef2ff" />
+    <text x="34" y="52" font-size="16" font-weight="700" fill="#4f46e5" text-anchor="middle">1</text>
+    <text x="140" y="110" font-size="46" text-anchor="middle">✨</text>
+    <text x="140" y="160" font-size="18" font-weight="700" fill="#1e1b4b" text-anchor="middle">ボスを選んで発行</text>
+    <text x="140" y="195" font-size="13.5" fill="#475569" text-anchor="middle">
+      <tspan x="140" dy="0">リーダーがボスを選択し、</tspan>
+      <tspan x="140" dy="22">カレンダーで候補日を</tspan>
+      <tspan x="140" dy="22">クリックして発行します。</tspan>
+    </text>
+    <text x="140" y="330" font-size="12" fill="#94a3b8" text-anchor="middle">
+      <tspan x="140" dy="0">「単発」か「定期」も</tspan>
+      <tspan x="140" dy="18">ここで選べます</tspan>
+    </text>
+  </g>
+
+  <!-- Step 2 -->
+  <g transform="translate(345, 160)">
+    <rect width="280" height="380" rx="20" fill="#ffffff" stroke="#e5e7eb" />
+    <rect width="280" height="7" rx="3.5" fill="url(#bar2)" />
+    <circle cx="34" cy="46" r="18" fill="#eff6ff" />
+    <text x="34" y="52" font-size="16" font-weight="700" fill="#2563eb" text-anchor="middle">2</text>
+    <text x="140" y="110" font-size="46" text-anchor="middle">📝</text>
+    <text x="140" y="160" font-size="18" font-weight="700" fill="#1e1b4b" text-anchor="middle">メンバーが回答</text>
+    <text x="140" y="195" font-size="13.5" fill="#475569" text-anchor="middle">
+      <tspan x="140" dy="0">共有されたURLから開き、</tspan>
+      <tspan x="140" dy="22">候補日ごとに○/△/×で</tspan>
+      <tspan x="140" dy="22">参加可否を入力します。</tspan>
+    </text>
+    <text x="140" y="330" font-size="12" fill="#94a3b8" text-anchor="middle">
+      <tspan x="140" dy="0">○=終日OK　△=時間指定</tspan>
+      <tspan x="140" dy="18">×=終日不可</tspan>
+    </text>
+  </g>
+
+  <!-- Step 3 -->
+  <g transform="translate(645, 160)">
+    <rect width="280" height="380" rx="20" fill="#ffffff" stroke="#e5e7eb" />
+    <rect width="280" height="7" rx="3.5" fill="url(#bar3)" />
+    <circle cx="34" cy="46" r="18" fill="#ecfdf5" />
+    <text x="34" y="52" font-size="16" font-weight="700" fill="#059669" text-anchor="middle">3</text>
+    <text x="140" y="110" font-size="46" text-anchor="middle">🗓️</text>
+    <text x="140" y="160" font-size="18" font-weight="700" fill="#1e1b4b" text-anchor="middle">リーダーが確定</text>
+    <text x="140" y="195" font-size="13.5" fill="#475569" text-anchor="middle">
+      <tspan x="140" dy="0">全員の回答を見ながら、</tspan>
+      <tspan x="140" dy="22">開催日時を確定します。</tspan>
+      <tspan x="140" dy="22">複数日程の確定も可能。</tspan>
+    </text>
+    <text x="140" y="330" font-size="12" fill="#94a3b8" text-anchor="middle">
+      <tspan x="140" dy="0">重なる時間帯は</tspan>
+      <tspan x="140" dy="18">自動で計算されます</tspan>
+    </text>
+  </g>
+
+  <!-- Step 4 -->
+  <g transform="translate(945, 160)">
+    <rect width="280" height="380" rx="20" fill="#ffffff" stroke="#e5e7eb" />
+    <rect width="280" height="7" rx="3.5" fill="url(#bar4)" />
+    <circle cx="34" cy="46" r="18" fill="#faf5ff" />
+    <text x="34" y="52" font-size="16" font-weight="700" fill="#9333ea" text-anchor="middle">4</text>
+    <text x="140" y="110" font-size="46" text-anchor="middle">🔁</text>
+    <text x="140" y="160" font-size="18" font-weight="700" fill="#1e1b4b" text-anchor="middle">定期スケジュール</text>
+    <text x="140" y="195" font-size="13.5" fill="#475569" text-anchor="middle">
+      <tspan x="140" dy="0">「定期」で確定すると、</tspan>
+      <tspan x="140" dy="22">以降は同じ曜日・時刻で</tspan>
+      <tspan x="140" dy="22">毎週自動表示されます。</tspan>
+    </text>
+    <text x="140" y="330" font-size="12" fill="#94a3b8" text-anchor="middle">
+      <tspan x="140" dy="0">週ごとの再入力は</tspan>
+      <tspan x="140" dy="18">不要です</tspan>
+    </text>
+  </g>
+
+  <text x="640" y="610" font-size="13" fill="#94a3b8" text-anchor="middle">ログイン不要・ブラウザだけで使えます</text>
+</svg>

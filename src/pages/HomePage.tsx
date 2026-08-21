@@ -5,6 +5,7 @@ import { createSchedule, listSchedulesByIds } from '../lib/firestore'
 import { getMyScheduleIds, rememberScheduleId } from '../lib/localSchedules'
 import { findBoss } from '../bosses'
 import { isToday, nextOccurrenceDateString, WEEKDAY_LABELS } from '../lib/recurring'
+import { formatDateWithWeekday } from '../lib/date'
 import type { ConfirmedSlot, Schedule } from '../types'
 import BossSelect from '../components/BossSelect'
 import BossImage from '../components/BossImage'
@@ -149,7 +150,7 @@ export default function HomePage() {
                             key={`${slot.date}_${slot.time}`}
                             className="inline-block w-fit rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
                           >
-                            確定: {slot.date} {slot.time}〜
+                            確定: {formatDateWithWeekday(slot.date)} {slot.time}〜
                           </span>
                         ))}
                       </div>
@@ -253,7 +254,7 @@ export default function HomePage() {
                     key={d}
                     className="flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-50 to-blue-50 px-3 py-1 text-sm text-indigo-700 ring-1 ring-indigo-100"
                   >
-                    <span>{d}</span>
+                    <span>{formatDateWithWeekday(d)}</span>
                     <button
                       type="button"
                       onClick={() => removeCandidateDate(d)}
