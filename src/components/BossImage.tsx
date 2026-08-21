@@ -16,7 +16,7 @@ export default function BossImage({ boss, size = 64 }: BossImageProps) {
     return (
       <div
         style={style}
-        className="flex items-center justify-center rounded-full bg-gray-200 text-lg font-bold text-gray-500"
+        className="flex items-center justify-center rounded-lg bg-gray-200 text-lg font-bold text-gray-500"
       >
         {boss.name.charAt(0)}
       </div>
@@ -25,10 +25,10 @@ export default function BossImage({ boss, size = 64 }: BossImageProps) {
 
   return (
     <img
-      src={boss.image}
+      src={`${import.meta.env.BASE_URL}${boss.image}`}
       alt={boss.name}
       style={style}
-      className="rounded-full object-cover"
+      className="rounded-lg object-cover"
       onError={() => setFailed(true)}
     />
   )

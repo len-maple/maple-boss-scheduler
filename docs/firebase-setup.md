@@ -69,11 +69,17 @@ service cloud.firestore {
       allow create: if request.auth != null;
       allow update: if request.auth != null
                     && request.auth.uid == resource.data.leaderId;
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.leaderId;
 
       match /responses/{memberId} {
         allow read: if true;
-        allow write: if request.auth != null
-                     && request.auth.uid == memberId;
+        allow create, update: if request.auth != null
+                              && request.auth.uid == memberId;
+        allow delete: if request.auth != null
+                      && (request.auth.uid == memberId
+                          || request.auth.uid ==
+                             get(/databases/$(database)/documents/schedules/$(scheduleId)).data.leaderId);
       }
     }
   }
@@ -84,9 +90,13 @@ service cloud.firestore {
 
 **ルールの意味:**
 - `schedules`: 誰でも閲覧可（共有URLでアクセスするため） / 作成は匿名認証済みなら誰でも可 /
-  更新（開催日時の確定など）はスケジュール作成時の`leaderId`と一致する本人のみ
-- `responses`（メンバーの回答）: 誰でも閲覧可 / 書き込みは自分の`uid`と一致するドキュメントのみ
-  （他人の回答を書き換えられないようにする）
+  更新・削除（開催日時の確定、スケジュールの削除など）はスケジュール作成時の`leaderId`と一致する本人のみ
+- `responses`（メンバーの回答）: 誰でも閲覧可 / 作成・更新は自分の`uid`と一致するドキュメントのみ
+  （他人の回答を書き換えられないようにする）/ 削除は本人、またはそのスケジュールのリーダーが可能
+  （スケジュール削除時に全員の回答もまとめて削除できるようにするため）
+
+**既にルールを設定済みの場合:** 機能追加のたびにルールを更新しています。
+上記の内容で再度「公開」し直してください（新機能のボタンを押しても反映されない場合、ここが原因です）。
 
 ## 6. アプリ側の環境変数設定（.env）
 

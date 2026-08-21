@@ -2,14 +2,16 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../firebase'
-import type { DateAnswer, MemberResponse, Schedule } from '../types'
+import type { ConfirmedSlot, DateAnswer, MemberResponse, Schedule } from '../types'
 
 function scheduleDocRef(scheduleId: string) {
   return doc(db, 'schedules', scheduleId)
@@ -27,8 +29,8 @@ function toSchedule(id: string, data: any): Schedule {
     leaderId: data.leaderId,
     candidateDates: data.candidateDates ?? [],
     status: data.status,
-    confirmedDate: data.confirmedDate ?? null,
-    confirmedTime: data.confirmedTime ?? null,
+    confirmedSlots: data.confirmedSlots ?? [],
+    isRecurring: data.isRecurring ?? false,
     createdAt: data.createdAt?.toMillis?.() ?? 0,
   }
 }
@@ -38,6 +40,7 @@ export async function createSchedule(
   title: string,
   bossId: string,
   candidateDates: string[],
+  isRecurring: boolean,
 ): Promise<string> {
   const ref = doc(collection(db, 'schedules'))
   await setDoc(ref, {
@@ -46,8 +49,8 @@ export async function createSchedule(
     leaderId,
     candidateDates,
     status: 'collecting',
-    confirmedDate: null,
-    confirmedTime: null,
+    confirmedSlots: [],
+    isRecurring,
     createdAt: serverTimestamp(),
   })
   return ref.id
@@ -118,16 +121,27 @@ export async function upsertResponse(
   )
 }
 
-export async function confirmSchedule(
+// 確定日程一覧をまるごと置き換える。配列が空になった場合は未確定(collecting)に戻す。
+export async function saveConfirmedSlots(
   scheduleId: string,
-  confirmedDate: string,
-  confirmedTime: string,
+  confirmedSlots: ConfirmedSlot[],
 ): Promise<void> {
   await updateDoc(scheduleDocRef(scheduleId), {
-    status: 'confirmed',
-    confirmedDate,
-    confirmedTime,
+    status: confirmedSlots.length > 0 ? 'confirmed' : 'collecting',
+    confirmedSlots,
   })
+}
+
+// スケジュール本体と回答(responses サブコレクション)をまとめて削除する。
+// Firestoreはサブコレクションを自動削除しないため、明示的に1件ずつ削除対象に含める。
+// リーダーが他人の回答も削除できるよう、Firestoreのセキュリティルール側の対応も必要
+// (docs/firebase-setup.md §5 参照)。
+export async function deleteSchedule(scheduleId: string): Promise<void> {
+  const responsesSnap = await getDocs(responsesCollectionRef(scheduleId))
+  const batch = writeBatch(db)
+  responsesSnap.docs.forEach((d) => batch.delete(d.ref))
+  batch.delete(scheduleDocRef(scheduleId))
+  await batch.commit()
 }
 
 export async function listSchedulesByIds(ids: string[]): Promise<Schedule[]> {

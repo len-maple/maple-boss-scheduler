@@ -69,15 +69,23 @@ export default function CandidateDateCalendar({ selected, onChange }: CandidateD
   }
 
   return (
-    <div className="rounded border p-3">
+    <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
-        <button type="button" onClick={goToPrevMonth} className="rounded px-2 py-1 hover:bg-gray-100">
+        <button
+          type="button"
+          onClick={goToPrevMonth}
+          className="rounded-lg px-2 py-1 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600"
+        >
           ＜
         </button>
-        <span className="font-medium">
+        <span className="font-semibold text-gray-800">
           {viewYear}年 {viewMonth + 1}月
         </span>
-        <button type="button" onClick={goToNextMonth} className="rounded px-2 py-1 hover:bg-gray-100">
+        <button
+          type="button"
+          onClick={goToNextMonth}
+          className="rounded-lg px-2 py-1 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600"
+        >
           ＞
         </button>
       </div>
@@ -98,12 +106,12 @@ export default function CandidateDateCalendar({ selected, onChange }: CandidateD
               type="button"
               disabled={isPast}
               onClick={() => toggleDate(day)}
-              className={`rounded py-2 text-sm transition-colors ${
+              className={`rounded-lg py-2 text-sm font-medium transition-all ${
                 isPast
                   ? 'cursor-not-allowed text-gray-300'
                   : isSelected
-                    ? 'bg-blue-500 text-white'
-                    : 'hover:bg-gray-100'
+                    ? 'bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-sm shadow-indigo-200'
+                    : 'text-gray-700 hover:bg-indigo-50'
               }`}
             >
               {day}

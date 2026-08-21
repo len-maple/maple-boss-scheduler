@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import { firebaseInitError } from './firebase'
+import AppLayout from './components/AppLayout'
 import HomePage from './pages/HomePage'
 import SchedulePage from './pages/SchedulePage'
 
@@ -21,8 +22,10 @@ if (firebaseInitError) {
     <React.StrictMode>
       <HashRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/s/:scheduleId" element={<SchedulePage />} />
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/s/:scheduleId" element={<SchedulePage />} />
+          </Route>
         </Routes>
       </HashRouter>
     </React.StrictMode>,

@@ -69,10 +69,10 @@ export default function TimeGridPicker({ selected, onChange }: TimeGridPickerPro
               type="button"
               data-slot-index={index}
               onPointerDown={(e) => handlePointerDown(index, e)}
-              className={`rounded px-1 py-2 text-xs font-mono border transition-colors ${
+              className={`rounded-lg border px-1 py-2 font-mono text-xs transition-all ${
                 isSelected
-                  ? 'bg-emerald-500 text-white border-emerald-600'
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-100'
+                  ? 'border-amber-500 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm shadow-amber-200'
+                  : 'border-gray-200 bg-white text-gray-600 hover:bg-amber-50'
               }`}
             >
               {slotLabel(index)}

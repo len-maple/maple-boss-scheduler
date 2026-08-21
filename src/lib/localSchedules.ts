@@ -11,6 +11,11 @@ export function rememberScheduleId(scheduleId: string): void {
   }
 }
 
+export function forgetScheduleId(scheduleId: string): void {
+  const ids = getMyScheduleIds().filter((id) => id !== scheduleId)
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
+}
+
 export function getMyScheduleIds(): string[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)

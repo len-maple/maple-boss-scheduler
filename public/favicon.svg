@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 交差する剣 -->
+  <g stroke="#9aa5b1" stroke-width="5" stroke-linecap="round">
+    <line x1="10" y1="54" x2="54" y2="10" />
+    <line x1="54" y1="54" x2="10" y2="10" />
+  </g>
+  <g stroke="#5b6672" stroke-width="5" stroke-linecap="round" opacity="0.5">
+    <line x1="10" y1="54" x2="20" y2="44" />
+    <line x1="54" y1="54" x2="44" y2="44" />
+  </g>
+  <!-- 柄 -->
+  <g fill="#caa24a" stroke="#8a6a24" stroke-width="1.5">
+    <rect x="6" y="50" width="10" height="6" rx="2" transform="rotate(-45 11 53)" />
+    <rect x="48" y="50" width="10" height="6" rx="2" transform="rotate(45 53 53)" />
+  </g>
+
+  <!-- きのこ -->
+  <g>
+    <rect x="26" y="34" width="12" height="16" rx="4" fill="#fbeed3" stroke="#caa24a" stroke-width="2" />
+    <path
+      d="M 14 30 C 14 16 22 8 32 8 C 42 8 50 16 50 30 C 50 34 46 36 32 36 C 18 36 14 34 14 30 Z"
+      fill="#e0455f"
+      stroke="#a12e42"
+      stroke-width="2"
+    />
+    <circle cx="24" cy="20" r="3" fill="#fff" />
+    <circle cx="38" cy="17" r="2.6" fill="#fff" />
+    <circle cx="32" cy="27" r="2.2" fill="#fff" />
+    <circle cx="43" cy="25" r="2" fill="#fff" />
+  </g>
+</svg>
