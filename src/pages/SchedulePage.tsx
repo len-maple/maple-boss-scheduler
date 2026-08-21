@@ -10,7 +10,7 @@ import {
   subscribeSchedule,
 } from '../lib/firestore'
 import { forgetScheduleId, rememberScheduleId } from '../lib/localSchedules'
-import { commonAvailableSlots, slotLabel } from '../lib/availability'
+import { commonAvailableSlots, isDateConfirmable, slotLabel } from '../lib/availability'
 import { formatDateWithWeekday } from '../lib/date'
 import { findBoss } from '../bosses'
 import type { AnswerType, ConfirmedSlot, MemberResponse, Schedule } from '../types'
@@ -170,6 +170,23 @@ function LeaderView({
     // スケジュールIDが変わる場合はない前提だが、他端末での更新を拾えるようslotsのシリアライズも見る。
   }, [schedule.id, JSON.stringify(schedule.confirmedSlots)])
 
+  // 誰か1人でも×と回答している日、または○/△の回答者全員が一致する時間帯が
+  // 一つも無い日は、確定候補から外す。
+  const confirmableDates = useMemo(
+    () => schedule.candidateDates.filter((d) => isDateConfirmable(responses, d)),
+    [schedule.candidateDates, responses],
+  )
+
+  useEffect(() => {
+    if (confirmableDates.length === 0) {
+      setConfirmDate('')
+      return
+    }
+    if (!confirmableDates.includes(confirmDate)) {
+      setConfirmDate(confirmableDates[0])
+    }
+  }, [confirmableDates.join(',')])
+
   // ○/△の回答から、選んだ候補日で全員の都合が重なる時間帯を求める。
   // ×は不参加の意思表示として計算から除外する（docs/implementation-plan.md 参照）。
   const hasAvailabilityInfo = responses.some(
@@ -301,61 +318,68 @@ function LeaderView({
         </h2>
         <p className="mb-3 text-xs text-gray-500">
           複数の日程を確定したい場合は、日時を選んで「日程に追加」を繰り返してから保存してください。
+          ×と回答した人がいる日、または○/△の回答者全員が一致する時間が無い日は選択肢から外れます。
         </p>
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="mb-1 block text-sm text-gray-700">日付</label>
-            <select
-              value={confirmDate}
-              onChange={(e) => setConfirmDate(e.target.value)}
-              className="rounded-lg border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-            >
-              {schedule.candidateDates.map((d) => (
-                <option key={d} value={d}>
-                  {formatDateWithWeekday(d)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm text-gray-700">開始時刻</label>
-            {hasAvailabilityInfo ? (
+        {schedule.candidateDates.length > 0 && confirmableDates.length === 0 ? (
+          <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+            現在、確定できる候補日がありません（全ての候補日に×の回答があるか、全員が一致する時間帯がありません）。
+          </p>
+        ) : (
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-sm text-gray-700">日付</label>
               <select
-                value={confirmTime}
-                onChange={(e) => setConfirmTime(e.target.value)}
-                disabled={availableTimeOptions.length === 0}
+                value={confirmDate}
+                onChange={(e) => setConfirmDate(e.target.value)}
                 className="rounded-lg border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
               >
-                {availableTimeOptions.length === 0 ? (
-                  <option value="">選択肢なし</option>
-                ) : (
-                  availableTimeOptions.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))
-                )}
+                {confirmableDates.map((d) => (
+                  <option key={d} value={d}>
+                    {formatDateWithWeekday(d)}
+                  </option>
+                ))}
               </select>
-            ) : (
-              <input
-                type="time"
-                step={60}
-                value={confirmTime}
-                onChange={(e) => setConfirmTime(e.target.value)}
-                className="rounded-lg border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-              />
-            )}
+            </div>
+            <div>
+              <label className="mb-1 block text-sm text-gray-700">開始時刻</label>
+              {hasAvailabilityInfo ? (
+                <select
+                  value={confirmTime}
+                  onChange={(e) => setConfirmTime(e.target.value)}
+                  disabled={availableTimeOptions.length === 0}
+                  className="rounded-lg border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                >
+                  {availableTimeOptions.length === 0 ? (
+                    <option value="">選択肢なし</option>
+                  ) : (
+                    availableTimeOptions.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))
+                  )}
+                </select>
+              ) : (
+                <input
+                  type="time"
+                  step={60}
+                  value={confirmTime}
+                  onChange={(e) => setConfirmTime(e.target.value)}
+                  className="rounded-lg border border-gray-200 px-3 py-2 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                />
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={addStagedSlot}
+              disabled={!confirmTime}
+              className="rounded-lg bg-indigo-100 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-200 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              ＋ 日程に追加
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={addStagedSlot}
-            disabled={!confirmTime}
-            className="rounded-lg bg-indigo-100 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-200 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            ＋ 日程に追加
-          </button>
-        </div>
+        )}
         {hasAvailabilityInfo && (
           <p className="mt-3 text-xs text-gray-500">
             {availableTimeOptions.length > 0

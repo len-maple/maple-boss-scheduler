@@ -33,3 +33,21 @@ export function commonAvailableSlots(responses: MemberResponse[], date: string):
   }
   return [...common].sort((a, b) => a - b)
 }
+
+// 「開催日時を確定する」の日付選択に出してよい候補日かどうかを判定する。
+// - 誰か1人でも×と回答している日は、その日は不参加者が確定してしまうため除外する
+//   （commonAvailableSlots は×を無視して時間帯を計算するが、こちらは日付そのものの
+//   採用可否を判定するので×を無視しない）。
+// - ×はいないが、○/△の回答者全員が一致する時間帯が一つも無い日も除外する。
+// - まだ誰も回答していない日は、除外する根拠がないのでそのまま候補に残す。
+export function isDateConfirmable(responses: MemberResponse[], date: string): boolean {
+  const dateAnswers: DateAnswer[] = []
+  for (const r of responses) {
+    const answer = r.answers[date]
+    if (answer) dateAnswers.push(answer)
+  }
+
+  if (dateAnswers.length === 0) return true
+  if (dateAnswers.some((a) => a.type === 'cross')) return false
+  return commonAvailableSlots(responses, date).length > 0
+}
