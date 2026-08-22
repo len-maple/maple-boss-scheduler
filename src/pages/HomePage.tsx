@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { User } from 'firebase/auth'
 import { authReady } from '../firebase'
-import { createSchedule, listSchedulesByIds } from '../lib/firestore'
+import { createSchedule, deleteSchedule, listSchedulesByIds } from '../lib/firestore'
 import { forgetScheduleId, getMyScheduleIds, rememberScheduleId } from '../lib/localSchedules'
 import { findBoss } from '../bosses'
 import { isToday, nextOccurrenceDateString, WEEKDAY_LABELS } from '../lib/recurring'
@@ -55,9 +56,15 @@ export default function HomePage() {
   const [scheduleMode, setScheduleMode] = useState<'single' | 'recurring'>('single')
   const [candidateDates, setCandidateDates] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
   const [mySchedules, setMySchedules] = useState<Schedule[]>([])
   const [recurringSchedules, setRecurringSchedules] = useState<Schedule[]>([])
   const [loadingMySchedules, setLoadingMySchedules] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  useEffect(() => {
+    authReady.then(setUser)
+  }, [])
 
   useEffect(() => {
     const ids = getMyScheduleIds()
@@ -103,6 +110,23 @@ export default function HomePage() {
     setCandidateDates(candidateDates.filter((d) => d !== date))
   }
 
+  async function handleDeleteFromHome(scheduleId: string) {
+    if (
+      !window.confirm('このスケジュールを削除します。メンバーの回答もすべて消え、元に戻せません。よろしいですか？')
+    ) {
+      return
+    }
+    setDeletingId(scheduleId)
+    try {
+      await deleteSchedule(scheduleId)
+      forgetScheduleId(scheduleId)
+      setMySchedules((prev) => prev.filter((s) => s.id !== scheduleId))
+      setRecurringSchedules((prev) => prev.filter((s) => s.id !== scheduleId))
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const boss = findBoss(bossId)
@@ -138,12 +162,13 @@ export default function HomePage() {
           {mySchedules.map((s) => {
             const boss = findBoss(s.bossId)
             const confirmed = s.status === 'confirmed'
+            const isLeader = user?.uid === s.leaderId
             return (
-              <li key={s.id}>
+              <li key={s.id} className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => navigate(`/s/${s.id}`)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+                  className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
                 >
                   {boss && <BossImage boss={boss} size={44} />}
                   <div className="min-w-0 flex-1">
@@ -170,6 +195,18 @@ export default function HomePage() {
                     )}
                   </div>
                 </button>
+                {isLeader && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteFromHome(s.id)}
+                    disabled={deletingId === s.id}
+                    aria-label="このスケジュールを削除"
+                    title="このスケジュールを削除"
+                    className="shrink-0 rounded-lg p-2 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    🗑️
+                  </button>
+                )}
               </li>
             )
           })}
@@ -194,12 +231,13 @@ export default function HomePage() {
             const time = s.confirmedSlots[0].time
             const occurrence = nextOccurrenceDateString(weekday)
             const today = isToday(occurrence)
+            const isLeader = user?.uid === s.leaderId
             return (
-              <li key={s.id}>
+              <li key={s.id} className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => navigate(`/s/${s.id}`)}
-                  className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                  className={`flex min-w-0 flex-1 items-center gap-3 rounded-xl border p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
                     today ? 'border-indigo-300 bg-indigo-50' : 'border-gray-100 bg-white hover:border-indigo-200'
                   }`}
                 >
@@ -218,6 +256,18 @@ export default function HomePage() {
                     </div>
                   </div>
                 </button>
+                {isLeader && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteFromHome(s.id)}
+                    disabled={deletingId === s.id}
+                    aria-label="このスケジュールを削除"
+                    title="このスケジュールを削除"
+                    className="shrink-0 rounded-lg p-2 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    🗑️
+                  </button>
+                )}
               </li>
             )
           })}
