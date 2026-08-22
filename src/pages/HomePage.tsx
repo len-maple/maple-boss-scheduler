@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authReady } from '../firebase'
 import { createSchedule, listSchedulesByIds } from '../lib/firestore'
-import { getMyScheduleIds, rememberScheduleId } from '../lib/localSchedules'
+import { forgetScheduleId, getMyScheduleIds, rememberScheduleId } from '../lib/localSchedules'
 import { findBoss } from '../bosses'
 import { isToday, nextOccurrenceDateString, WEEKDAY_LABELS } from '../lib/recurring'
 import { formatDateWithWeekday } from '../lib/date'
@@ -67,6 +67,10 @@ export default function HomePage() {
     }
     listSchedulesByIds(ids)
       .then((schedules) => {
+        // Firestore側で既に削除済みのIDは、以後も無駄な読み取りが発生し続けないよう記憶から外す。
+        const foundIds = new Set(schedules.map((s) => s.id))
+        ids.filter((id) => !foundIds.has(id)).forEach(forgetScheduleId)
+
         // 確定済みの定期スケジュールは、専用の枠で「次回の日付」を計算して表示する。
         // それ以外(未確定の定期スケジュールも含む)は、これまで通りの一覧に表示する。
         const recurring = schedules.filter(
@@ -74,11 +78,16 @@ export default function HomePage() {
         )
         const regular = schedules.filter((s) => !recurring.includes(s))
 
-        const visible = regular
-          .map(dropExpiredSlots)
+        const droppedRegular = regular.map(dropExpiredSlots)
+        const visible = droppedRegular
           .filter((s) => s.status !== 'confirmed' || s.confirmedSlots.length > 0)
           .sort(compareSchedules)
         setMySchedules(visible)
+
+        // 確定済み(定期を除く)で確定日程が全て過ぎたスケジュールも、以後読み取らないよう記憶から外す。
+        droppedRegular
+          .filter((s) => s.status === 'confirmed' && s.confirmedSlots.length === 0)
+          .forEach((s) => forgetScheduleId(s.id))
 
         const sortedRecurring = [...recurring].sort((a, b) => {
           const aDate = nextOccurrenceDateString(weekdayOf(a.confirmedSlots[0].date))
