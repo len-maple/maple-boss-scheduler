@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react';
 // 動くように、リポジトリ名を base に設定する。
 export default defineConfig({
     plugins: [react()],
-    base: '/maplestoyr-boss-scheduler/',
+    base: '/maple-boss-scheduler/',
 });

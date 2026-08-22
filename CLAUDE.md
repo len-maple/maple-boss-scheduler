@@ -1,4 +1,4 @@
-# maplestoyr-boss-scheduler
+# maple-boss-scheduler
 
 このファイルは Claude Code がこのリポジトリで作業する際に参照するプロジェクト設定です。
 
