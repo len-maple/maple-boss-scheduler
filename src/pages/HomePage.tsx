@@ -350,7 +350,7 @@ export default function HomePage() {
                   type="button"
                   onClick={() => navigate(`/s/${s.id}`)}
                   className={`flex min-w-0 flex-1 items-center gap-3 rounded-xl border p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
-                    today ? 'border-indigo-300 bg-indigo-50' : 'border-gray-100 bg-white hover:border-indigo-200'
+                    today ? 'border-yellow-300 bg-yellow-50' : 'border-gray-100 bg-white hover:border-indigo-200'
                   }`}
                 >
                   {boss && <BossImage boss={boss} size={44} />}
