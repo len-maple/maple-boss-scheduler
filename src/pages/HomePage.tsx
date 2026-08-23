@@ -50,6 +50,53 @@ function earliestUpcomingSlotTime(schedule: Schedule): number | null {
   return Math.min(...schedule.confirmedSlots.map(slotDateTime))
 }
 
+const ALERT_MINUTES_BEFORE = 5
+// setTimeoutの遅延が長すぎるとブラウザによっては即時発火してしまうため、
+// この期間より先の予定はアラーム対象から外す(現実的にはほぼ影響しない)。
+const ALERT_MAX_DELAY_MS = 14 * 24 * 60 * 60 * 1000
+
+// ブラウザの自動再生ポリシー対策: ページ内のどこかで最初にユーザー操作があった時点で
+// AudioContextを1つだけ生成して使い回す。こうしておくと、実際にアラームを鳴らすタイミングで
+// 別タブを見ていて操作が無い状態でも(操作済みのcontextが既にrunningなので)問題なく再生できる。
+let sharedAudioContext: AudioContext | null = null
+
+function getAudioContext(): AudioContext | null {
+  const AudioContextClass =
+    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  if (!AudioContextClass) return null
+  if (!sharedAudioContext) {
+    sharedAudioContext = new AudioContextClass()
+  }
+  return sharedAudioContext
+}
+
+// Web Audio APIでビープ音を3回鳴らす。外部音声ファイルを用意しなくて済むようにするため。
+function playAlertSound() {
+  try {
+    const ctx = getAudioContext()
+    if (!ctx) return
+    if (ctx.state === 'suspended') {
+      ctx.resume()
+    }
+    const now = ctx.currentTime
+    ;[0, 0.35, 0.7].forEach((offset) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.value = 880
+      gain.gain.setValueAtTime(0.0001, now + offset)
+      gain.gain.exponentialRampToValueAtTime(0.3, now + offset + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.3)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now + offset)
+      osc.stop(now + offset + 0.3)
+    })
+  } catch (err) {
+    console.error('アラーム音の再生に失敗しました', err)
+  }
+}
+
 export default function HomePage() {
   const navigate = useNavigate()
   const [bossId, setBossId] = useState('')
@@ -61,9 +108,28 @@ export default function HomePage() {
   const [recurringSchedules, setRecurringSchedules] = useState<Schedule[]>([])
   const [loadingMySchedules, setLoadingMySchedules] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [alertBanner, setAlertBanner] = useState<string | null>(null)
 
   useEffect(() => {
     authReady.then(setUser)
+  }, [])
+
+  // ページ内で最初にクリック等の操作があった時点でAudioContextを解錠しておく。
+  // これをしておかないと、5分前アラームが鳴る瞬間に別タブを見ていた場合、
+  // ブラウザの自動再生ポリシーにより音が出せないことがある。
+  useEffect(() => {
+    function unlockAudio() {
+      const ctx = getAudioContext()
+      if (ctx?.state === 'suspended') {
+        ctx.resume()
+      }
+    }
+    window.addEventListener('pointerdown', unlockAudio)
+    window.addEventListener('keydown', unlockAudio)
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio)
+      window.removeEventListener('keydown', unlockAudio)
+    }
   }, [])
 
   useEffect(() => {
@@ -105,6 +171,42 @@ export default function HomePage() {
       })
       .finally(() => setLoadingMySchedules(false))
   }, [])
+
+  // 確定済みの開催時刻の5分前になったら、音とバナーで知らせる。
+  // このページ(ホーム画面)を開いている間だけ有効。
+  useEffect(() => {
+    const now = Date.now()
+    const timerIds: number[] = []
+
+    function scheduleAlert(title: string, date: string, time: string) {
+      const eventTime = new Date(`${date}T${time}:00`).getTime()
+      const delay = eventTime - ALERT_MINUTES_BEFORE * 60 * 1000 - now
+      if (delay <= 0 || delay > ALERT_MAX_DELAY_MS) return
+      const timerId = window.setTimeout(() => {
+        playAlertSound()
+        setAlertBanner(`まもなく開始: ${title}（${time}〜 / あと${ALERT_MINUTES_BEFORE}分）`)
+      }, delay)
+      timerIds.push(timerId)
+    }
+
+    mySchedules
+      .filter((s) => s.status === 'confirmed')
+      .forEach((s) => s.confirmedSlots.forEach((slot) => scheduleAlert(s.title, slot.date, slot.time)))
+
+    recurringSchedules.forEach((s) => {
+      const weekday = weekdayOf(s.confirmedSlots[0].date)
+      const occurrence = nextOccurrenceDateString(weekday)
+      scheduleAlert(s.title, occurrence, s.confirmedSlots[0].time)
+    })
+
+    return () => timerIds.forEach((id) => window.clearTimeout(id))
+  }, [mySchedules, recurringSchedules])
+
+  useEffect(() => {
+    if (!alertBanner) return
+    const timerId = window.setTimeout(() => setAlertBanner(null), 15000)
+    return () => window.clearTimeout(timerId)
+  }, [alertBanner])
 
   function removeCandidateDate(date: string) {
     setCandidateDates(candidateDates.filter((d) => d !== date))
@@ -150,6 +252,11 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto grid max-w-[1800px] grid-cols-1 gap-6 p-4 md:p-6 lg:grid-cols-4 lg:items-start">
+      {alertBanner && (
+        <div className="fixed inset-x-4 top-4 z-50 mx-auto flex w-fit max-w-[90vw] items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-500/30">
+          🔔 {alertBanner}
+        </div>
+      )}
       <Card>
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-600">
           <span className="text-base">📋</span>自分が関わったスケジュール
@@ -163,12 +270,17 @@ export default function HomePage() {
             const boss = findBoss(s.bossId)
             const confirmed = s.status === 'confirmed'
             const isLeader = user?.uid === s.leaderId
+            const isTodaySchedule = confirmed && s.confirmedSlots.some((slot) => isToday(slot.date))
             return (
               <li key={s.id} className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => navigate(`/s/${s.id}`)}
-                  className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 text-left transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+                  className={`flex min-w-0 flex-1 items-center gap-3 rounded-xl border p-3 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                    isTodaySchedule
+                      ? 'border-yellow-300 bg-yellow-50'
+                      : 'border-gray-100 bg-white hover:border-indigo-200'
+                  }`}
                 >
                   {boss && <BossImage boss={boss} size={44} />}
                   <div className="min-w-0 flex-1">
