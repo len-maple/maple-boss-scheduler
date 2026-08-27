@@ -1,3 +1,5 @@
+import type { ConfirmedSlot } from '../types'
+
 export const WEEKDAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
 function pad(n: number): string {
@@ -24,4 +26,16 @@ export function nextOccurrenceDateString(weekday: number, now: Date = new Date()
 
 export function isToday(dateString: string, now: Date = new Date()): boolean {
   return dateString === formatDate(now)
+}
+
+// 定期スケジュールは確定時の日付をFirestoreに保存したままにしているため、
+// 表示のたびに「その曜日・時刻の直近の回」の日付へ読み替える。
+export function nextOccurrenceConfirmedSlots(
+  slots: ConfirmedSlot[],
+  now: Date = new Date(),
+): ConfirmedSlot[] {
+  return slots.map((slot) => {
+    const weekday = new Date(`${slot.date}T00:00:00`).getDay()
+    return { ...slot, date: nextOccurrenceDateString(weekday, now) }
+  })
 }

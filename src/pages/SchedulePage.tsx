@@ -12,6 +12,7 @@ import {
 import { forgetScheduleId, rememberScheduleId } from '../lib/localSchedules'
 import { commonAvailableSlots, isDateConfirmable, slotLabel } from '../lib/availability'
 import { formatDateWithWeekday } from '../lib/date'
+import { nextOccurrenceConfirmedSlots } from '../lib/recurring'
 import { findBoss } from '../bosses'
 import type { AnswerType, ConfirmedSlot, MemberResponse, Schedule } from '../types'
 import BossImage from '../components/BossImage'
@@ -36,7 +37,15 @@ export default function SchedulePage() {
 
   useEffect(() => {
     if (!scheduleId) return
-    const unsubSchedule = subscribeSchedule(scheduleId, setSchedule)
+    const unsubSchedule = subscribeSchedule(scheduleId, (fetched) => {
+      // 定期スケジュールは確定時の日付のまま保存されているため、表示時に
+      // 直近の回の日付へ読み替える(過去の日付が表示され続けるのを防ぐ)。
+      if (fetched && fetched.isRecurring && fetched.status === 'confirmed') {
+        setSchedule({ ...fetched, confirmedSlots: nextOccurrenceConfirmedSlots(fetched.confirmedSlots) })
+      } else {
+        setSchedule(fetched)
+      }
+    })
     const unsubResponses = subscribeResponses(scheduleId, setResponses)
     return () => {
       unsubSchedule()
